@@ -1,31 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Input } from 'antd';
+import { Button, Form, Input, message } from 'antd';
 import { isAuth, setSession } from '../helper/utils';
 import { useNavigate } from 'react-router-dom';
 import { MQTT } from '../constants/mqtt';
-import Loading from '../shared/Loading';
+import { useLoading } from '../context/loading';
+import { useClient } from '../context/client';
 
 export default function Login() {
     const navigate = useNavigate();
     const [auth, setAuth] = useState(isAuth() === "true")
-    const [isLoading, setIsLoading] = useState(false)
-    const [message, contextHolder] = message.useMessage();
+    const [msg, contextHolder] = message.useMessage();
     const [user, setUser] = useState(null)
-    
+    const { show, hide } = useLoading()
+    const { setClient } = useClient()
     useEffect(() => {
         if(auth) {
             setSession("isAuth", "true")
+            setSession("username", user.username)
             navigate('/status')
         }
     }, [auth])
 
     const handleLogin = () => {
-        setIsLoading(true)
-        MQTT.login(user.username, user.password).then(res => {
-            setAuth(res) 
+        show()
+        MQTT.connectAsync({ username: user.username, password: user.password }).then(res => {
+            setClient(res)
+            setAuth(!!res)
         }).catch(e => {
-            message.error("Login Failed! Please check your username and password")
-        }).finally(() => setIsLoading(false))
+            msg.error("Login Failed! Please check your username and password")
+        }).finally(() => hide())
     }
 
     const handleChange = e => {
@@ -36,9 +39,6 @@ export default function Login() {
         <>
             {
                 contextHolder
-            }
-            {
-                isLoading && <Loading/>
             }
             <Form
                 className='login'
@@ -62,40 +62,40 @@ export default function Login() {
                     <h1>Login</h1>
                 </Form.Item>
                 <Form.Item
-                label="Username"
-                name="username"
-                rules={[
-                    {
-                    required: true,
-                    message: 'Please input your username!',
-                    },
-                ]}
+                    label="Username"
+                    name="username"
+                    rules={[
+                        {
+                        required: true,
+                        message: 'Please input your username!',
+                        },
+                    ]}
                 >
-                <Input name='username' onChange={handleChange}/>
+                    <Input name='username' onChange={handleChange}/>
                 </Form.Item>
 
                 <Form.Item
-                label="Password"
-                name="password"
-                rules={[
-                    {
-                    required: true,
-                    message: 'Please input your password!',
-                    },
-                ]}
+                    label="Password"
+                    name="password"
+                    rules={[
+                        {
+                        required: true,
+                        message: 'Please input your password!',
+                        },
+                    ]}
                 >
-                <Input.Password name='password' onChange={handleChange}/>
+                    <Input.Password name='password' onChange={handleChange}/>
                 </Form.Item>
 
                 <Form.Item
-                wrapperCol={{
-                    offset: 8,
-                    span: 16,
-                }}
+                    wrapperCol={{
+                        offset: 8,
+                        span: 16,
+                    }}
                 >
-                <Button type="primary" htmlType="submit">
-                    Submit
-                </Button>
+                    <Button type="primary" htmlType="submit">
+                        Submit
+                    </Button>
                 </Form.Item>
             </Form>
 

@@ -58,8 +58,9 @@ export class MQTT{
         this.client = connect()
     }
 
-    static async connectAsync(){
-        this.client = await connectAsync();
+    static async connectAsync(opts){
+        this.client = await connectAsync(opts);
+        return this.client
     }
 
     static async reload(){
@@ -72,7 +73,13 @@ export class MQTT{
         return this.client.connected
     }
 
+    static async subscribe(){
 
+    }
+
+    static async publish(context){
+        publish(this.client, context)
+    }
 }
 
 // export const MQTT = {

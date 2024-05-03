@@ -5,8 +5,11 @@ import {
     ReloadOutlined,
     ThunderboltOutlined 
 } from '@ant-design/icons';
+import { CheckCircleTwoTone, HeartTwoTone, SmileTwoTone } from '@ant-design/icons';
+
 import { getLocal, setLocal } from '../../helper/utils';
 import { MQTT } from '../../constants/mqtt';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const { Header, Content, Footer } = Layout
 
 export default function StatusHeader({ client }) {
@@ -17,6 +20,7 @@ export default function StatusHeader({ client }) {
         const now = moment().add(-1, "minute");
         setLocal("lastUpdate", now)
         setDiff(1)
+        MQTT.publish({ topic: "admin", payload: "reload", qos: 1 })
         await MQTT.reload()
     }
 
@@ -35,22 +39,32 @@ export default function StatusHeader({ client }) {
         };
       }, []);
 
+
+    const renderTempature = () => {
+        const isNight = moment().hour() < 6 || moment().hour() > 18
+
+        return (
+            <Flex vertical={false} gap={10} justify='space-between' align='center'>
+                {
+                    isNight ? <FontAwesomeIcon size='3x' icon="fa-solid fa-moon" /> : <FontAwesomeIcon size='3x' icon="fa-solid fa-sun" />
+                }
+                <h1>47&deg;F</h1>
+            </Flex>
+        )
+    }
+    
     return (
-        <>
-            <Flex vertical={false} justify='space-around' align='center'>
-                <Header style={{ background: '#f5f5f7', padding: 0, textAlign: "center" }}>
-                    <h1>Latest Status</h1>
-                </Header>
-                <Typography>
-                    <h1>{`47F`}</h1>
-                </Typography>
+        <div className='status-header'>
+            <Flex vertical={false} justify='space-between' align='center' style={{ margin: 20 }}>
+                <Flex vertical={false} gap={10} >
+                    <h1>Live Status</h1>
+                    <CheckCircleTwoTone twoToneColor="#52c41a" height="2em" width="2em" style={{ fontSize : 30 }}/>
+                </Flex>
+                {
+                    renderTempature()
+                }
             </Flex>
             
-            <Flex vertical={false} gap={10}>
-                <h5>{`Last Updated: about ${diff} minutes ago.`}</h5>
-                <ReloadOutlined onClick={reloadStatus}/>
-            </Flex>
-        </>
-        
+        </div>
     )
 }

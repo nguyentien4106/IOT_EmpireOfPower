@@ -4,3 +4,7 @@
     left: 30%;
     width: 50%;
 }
+
+.pointer{
+    cursor: pointer;
+}
